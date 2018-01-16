@@ -1,0 +1,163 @@
+
+Release notes for GStreamer Bad Plugins 1.11.90
+
+The GStreamer team is pleased to announce the first release candidate of the
+stable 1.12 release series. The 1.12 release series is adding new features on
+top of the 1.0, 1.2, 1.4, 1.6, 1.8 and 1.10 series and is part of the API and
+ABI-stable 1.x release series of the GStreamer multimedia framework.
+
+
+Full release notes will be provided with the 1.12.0 release, highlighting all
+the new features, bugfixes, performance optimizations and other important
+changes.
+
+
+Binaries for Android, iOS, Mac OS X and Windows will be provided in the next days.
+
+
+"That an accusation?"
+
+
+No perfectly groomed moustache or any amount of fine clothing is going to
+cover up the truth - these plugins are Bad with a capital B.
+They look fine on the outside, and might even appear to get the job done, but
+at the end of the day they're a black sheep. Without a golden-haired angel
+to watch over them, they'll probably land in an unmarked grave at the final
+showdown.
+
+
+Don't bug us about their quality - exercise your Free Software rights,
+patch up the offender and send us the patch on the fastest steed you can
+steal from the Confederates. Because you see, in this world, there's two
+kinds of people, my friend: those with loaded guns and those who dig.
+You dig.
+
+
+This module contains a set of plugins that aren't up to par compared to the
+rest.  They might be close to being good quality, but they're missing something
+- be it a good code review, some documentation, a set of tests, a real live
+maintainer, or some actual wide use.  If the blanks are filled in they might be
+upgraded to become part of either gst-plugins-good or gst-plugins-ugly,
+depending on the other factors.
+If the plugins break, you can't complain - instead, you can fix the
+problem and send us a patch, or bribe someone into fixing them for you.
+New contributors can start here for things to work on.
+
+
+Other modules containing plugins are:
+
+
+gst-plugins-base
+contains a basic set of well-supported plugins
+gst-plugins-good
+contains a set of well-supported plugins under our preferred license
+gst-plugins-ugly
+contains a set of well-supported plugins, but might pose problems for
+    distributors
+gst-libav
+contains a set of codecs plugins based on libav (formerly gst-ffmpeg)
+
+
+
+  
+
+Bugs fixed in this release
+     
+      * 736213 : h264parse: process NAL AU DELIMITER
+      * 755782 : compositor: Segmentation fault
+      * 764726 : dashdemux: fix default suggestedPresentationDelay
+      * 772811 : hlsdemux: Add support for EXT-X-DISCONTINUITY-SEQUENCE
+      * 774544 : [PLUGIN-MOVE] Move rawparse to gst-plugins-base
+      * 775487 : player: Move to playbin3 and GstStreams API
+      * 776436 : ttml: Failed assertions with non-conformant input
+      * 776997 : hlsdemux: Implement adaptivedemux's _stream_seek()
+      * 776999 : queue2: Avoid return flushing for a not-linked state
+      * 777847 : ios/osx: Don't use manual reference counting in ObjC code
+      * 778073 : hls: m3u8: Fix leak on _master_playlist_unref()
+      * 778333 : Applemedia/AVFVideoSource: Add support for position, device type, and device orientation
+      * 778731 : hlsdemux: Fix checking bit for adaptation_field_control field to parse pcr
+      * 778825 : gl: Add support for Vivante EGL FB windowing system
+      * 779011 : hlsdemux: Try to find type at the end of a fragment
+      * 779067 : glupload: Add support for Vivante DirectTexture uploads
+      * 779309 : h264parse: Include `interlace-mode` in caps
+      * 779333 : tsdemux: Probably broken code, compiler warning with gcc 7
+      * 779447 : Regression: smoothstreaming live seeking and duration
+      * 779453 : gst-player: fix gst-player failed to load external subtitle uri
+      * 779790 : waylandsink: add offset setting for multiplane dmabuf
+      * 779831 : h264parse (baseparse?) fail to pass not-linked upstream sometimes
+      * 779856 : shmsrc: do not exit prematurely when polling
+      * 779869 : glupload: fix GValue leak
+      * 780064 : gstglformat.c fails to compile with a warning.
+      * 780108 : dashdemux: invalid enum conversion in SIDX seek error handling
+      * 780179 : m3u8: Fix parsing EXT-X-DISCONTINUITY
+      * 780180 : m3u8: Release m3u8 lock if consistent checking failed
+      * 780330 : Intermittent compile failure libgstgl
+      * 780367 : decklinkvideosrc: Add no-signal property
+
+==== Download ====
+
+You can find source releases of gst-plugins-bad in the download
+directory: https://gstreamer.freedesktop.org/src/gst-plugins-bad/
+
+The git repository and details how to clone it can be found at
+http://cgit.freedesktop.org/gstreamer/gst-plugins-bad/
+
+==== Homepage ====
+
+The project's website is https://gstreamer.freedesktop.org/
+
+==== Support and Bugs ====
+
+We use GNOME's bugzilla for bug reports and feature requests:
+http://bugzilla.gnome.org/enter_bug.cgi?product=GStreamer
+
+Please submit patches via bugzilla as well.
+
+For help and support, please subscribe to and send questions to the
+gstreamer-devel mailing list (see below for details).
+
+There is also a #gstreamer IRC channel on the Freenode IRC network.
+
+==== Developers ====
+
+GStreamer is stored in Git, hosted at git.freedesktop.org, and can be cloned
+from there (see link above).
+
+Interested developers of the core library, plugins, and applications should
+subscribe to the gstreamer-devel list.
+
+        
+Contributors to this release
+    
+      * Alex Ashley
+      * Arun Raghavan
+      * Chris Bass
+      * Dongil Park
+      * Douglas Bagnall
+      * Edgard Lima
+      * Edward Hervey
+      * Georg Lippitsch
+      * George Kiagiadakis
+      * Haihua Hu
+      * Hyunjun Ko
+      * Jan Schmidt
+      * Josep Torra
+      * Luis de Bethencourt
+      * Mathieu Duponchelle
+      * Matthew Waters
+      * Nick Kallen
+      * Nicolas Dufresne
+      * Nirbheek Chauhan
+      * Olivier Crête
+      * Reynaldo H. Verdejo Pinochet
+      * Samuel Maroy
+      * Scott D Phillips
+      * Sebastian Dröge
+      * Seungha Yang
+      * Thiago Santos
+      * Thibault Saunier
+      * Thomas Bluemel
+      * Tim-Philipp Müller
+      * Vincent Penquerc'h
+      * Wojciech Przybyl
+ 

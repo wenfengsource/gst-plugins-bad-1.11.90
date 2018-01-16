@@ -1,0 +1,14 @@
+prefix=
+exec_prefix=
+libdir=@videolibdir@
+includedir=/home/ubuntu/Downloads/Gstreamer1.9/gst-plugins-bad-1.11.90/gst-libs
+girdir=/home/ubuntu/Downloads/Gstreamer1.9/gst-plugins-bad-1.11.90/gst-libs/gst/video
+typelibdir=/home/ubuntu/Downloads/Gstreamer1.9/gst-plugins-bad-1.11.90/gst-libs/gst/video
+
+Name: GStreamer bad video library, uninstalled
+Description: Bad video library for GStreamer elements, Not Installed
+Version: 1.11.90
+Requires: gstreamer-1.0 gstreamer-bad-base-1.0
+
+Libs: -L${libdir} -lgstbadvideo-1.0
+Cflags: -I/home/ubuntu/Downloads/Gstreamer1.9/gst-plugins-bad-1.11.90/gst-libs -I/home/ubuntu/Downloads/Gstreamer1.9/gst-plugins-bad-1.11.90/gst-libs

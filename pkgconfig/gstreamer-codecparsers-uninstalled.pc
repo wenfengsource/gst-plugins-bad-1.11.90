@@ -1,0 +1,12 @@
+prefix=
+exec_prefix=
+libdir=@codecparserslibdir@
+includedir=/home/ubuntu/Downloads/Gstreamer1.9/gst-plugins-bad-1.11.90/gst-libs
+
+Name: GStreamer codec parsers, Uninstalled
+Description: Bitstream parsers for GStreamer elements, uninstalled
+Requires: gstreamer-1.0 gstreamer-base-1.0
+Version: 1.11.90
+Libs: -L${libdir} -lgstcodecparsers-1.0
+Cflags: -I/home/ubuntu/Downloads/Gstreamer1.9/gst-plugins-bad-1.11.90/gst-libs -I/home/ubuntu/Downloads/Gstreamer1.9/gst-plugins-bad-1.11.90/gst-libs
+
