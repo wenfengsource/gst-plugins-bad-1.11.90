@@ -81,6 +81,7 @@ struct MpegPsMux {
 
   GstBufferList *gop_list;
   gboolean       aggregate_gops;
+  GstAdapter *out_adapter;  // wenfeng
 };
 
 struct MpegPsMuxClass  {

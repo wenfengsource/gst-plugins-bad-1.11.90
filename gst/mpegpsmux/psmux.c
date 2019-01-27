@@ -80,7 +80,7 @@ psmux_new (void)
 
   mux->bit_pts = 0;
 
-  mux->pes_max_payload = PSMUX_PES_MAX_PAYLOAD;
+  mux->pes_max_payload = PSMUX_PES_MAX_PAYLOAD;  //wenfeng
   mux->bit_rate = 400 * 1024;   /* XXX: better default values? */
   mux->rate_bound = 2 * 1024;   /* 2* bit_rate / (8*50). XXX: any better default? */
 
@@ -219,6 +219,103 @@ psmux_packet_out (PsMux * mux)
   return res;
 }
 
+// wenfeng
+
+gboolean psmux_write_stream_packet_gb28181(PsMux *mux, PsMuxStream *stream, int bb, int video_flag)
+{
+  gboolean res;
+ 
+  g_return_val_if_fail (mux != NULL, FALSE);
+  g_return_val_if_fail (stream != NULL, FALSE);
+
+   int key =0;
+   
+   // VVV wenfeng  multi-pes 
+  if (stream->cur_buffer == NULL) {
+	/* Start next packet */
+	if (stream->buffers == NULL)
+	{
+		printf("stream->buffers == NULL \n");
+	  return FALSE;
+	}
+	stream->cur_buffer = (PsMuxStreamBuffer *) (stream->buffers->data);
+	stream->cur_buffer_consumed = 0;
+	//printf("update buffer  \n");
+  }
+   key = stream->cur_buffer->keyunit;
+   //printf("key ===%d \n", key);
+   
+  {
+    guint64 ts = psmux_stream_get_pts (stream);
+    if (ts != -1)
+      mux->pts = ts;
+  }
+
+ // if (mux->pts - mux->pack_hdr_pts > PSMUX_PACK_HDR_INTERVAL
+   //   || mux->pes_cnt % mux->pack_hdr_freq == 0)
+    if(video_flag)   
+	  {
+    /* Time to write pack header */
+    /* FIXME: currently we write the mux rate of the PREVIOUS pack into the
+     * pack header, because of the incapability to calculate the mux_rate
+     * before outputing the pack. To calculate the mux_rate for the current
+     * pack, we need to put the whole pack into buffer, calculate the
+     * mux_rate, and then output the whole trunck.
+     */
+    if (mux->pts != -1 && mux->pts > mux->bit_pts
+        && mux->pts - mux->bit_pts > PSMUX_BITRATE_CALC_INTERVAL) {
+      /* XXX: smoothing the rate? */
+      mux->bit_rate =
+          gst_util_uint64_scale (mux->bit_size, 8 * CLOCKBASE,
+          (mux->pts - mux->bit_pts));
+
+      mux->bit_size = 0;
+      mux->bit_pts = mux->pts;
+    }
+
+    psmux_write_pack_header (mux);
+    mux->pack_hdr_pts = mux->pts;
+  }
+  if(key && video_flag)
+ // if (mux->pes_cnt % mux->sys_hdr_freq == 0) 
+  {
+    /* Time to write system header */
+    psmux_write_system_header (mux);
+    mux->sys_hdr_pts = mux->pts;
+  }
+
+ // if (mux->pes_cnt % mux->psm_freq == 0) 
+  if(key && video_flag)
+  {
+    /* Time to write program stream map (PSM) */
+    psmux_write_program_stream_map (mux);
+    mux->psm_pts = mux->pts;
+  }
+ 
+
+  
+  while(stream->cur_buffer !=NULL)
+	{
+		//printf("loop  \n");
+		if (!(mux->packet_bytes_written =
+				 psmux_stream_get_data (stream, mux->packet_buf,
+					 mux->pes_max_payload + PSMUX_PES_MAX_HDR_LEN))) {
+		   return FALSE;
+		 }
+
+		 res = psmux_packet_out (mux);
+		  mux->pes_cnt += 1;
+
+		 if (!res) {
+			GST_DEBUG_OBJECT (mux, "packet write false");
+			return FALSE;
+		  }
+	}
+	 
+
+    return res;
+
+}
 /**
  * psmux_write_stream_packet:
  * @mux: a #PsMux
@@ -243,8 +340,9 @@ psmux_write_stream_packet (PsMux * mux, PsMuxStream * stream)
       mux->pts = ts;
   }
 
-  if (mux->pts - mux->pack_hdr_pts > PSMUX_PACK_HDR_INTERVAL
-      || mux->pes_cnt % mux->pack_hdr_freq == 0) {
+ // if (mux->pts - mux->pack_hdr_pts > PSMUX_PACK_HDR_INTERVAL
+   //   || mux->pes_cnt % mux->pack_hdr_freq == 0)
+	  {
     /* Time to write pack header */
     /* FIXME: currently we write the mux rate of the PREVIOUS pack into the
      * pack header, because of the incapability to calculate the mux_rate
@@ -267,13 +365,15 @@ psmux_write_stream_packet (PsMux * mux, PsMuxStream * stream)
     mux->pack_hdr_pts = mux->pts;
   }
 
-  if (mux->pes_cnt % mux->sys_hdr_freq == 0) {
+ // if (mux->pes_cnt % mux->sys_hdr_freq == 0)
+	  {
     /* Time to write system header */
     psmux_write_system_header (mux);
     mux->sys_hdr_pts = mux->pts;
   }
 
-  if (mux->pes_cnt % mux->psm_freq == 0) {
+ // if (mux->pes_cnt % mux->psm_freq == 0) 
+  {
     /* Time to write program stream map (PSM) */
     psmux_write_program_stream_map (mux);
     mux->psm_pts = mux->pts;

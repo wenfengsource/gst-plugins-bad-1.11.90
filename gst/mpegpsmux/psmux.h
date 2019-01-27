@@ -110,7 +110,9 @@ void 		psmux_set_write_func 		(PsMux *mux, PsMuxWriteFunc func, void *user_data)
 PsMuxStream *	psmux_create_stream 		(PsMux *mux, PsMuxStreamType stream_type);
 
 /* writing stuff */
-gboolean 	psmux_write_stream_packet 	(PsMux *mux, PsMuxStream *stream); 
+gboolean 	psmux_write_stream_packet 	(PsMux *mux, PsMuxStream *stream);
+gboolean psmux_write_stream_packet_gb28181 	(PsMux *mux, PsMuxStream *stream, int key, int video_flag); 
+ 
 gboolean	psmux_write_end_code		(PsMux *mux);
 
 GList *		psmux_get_stream_headers	(PsMux *mux);

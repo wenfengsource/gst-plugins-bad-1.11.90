@@ -167,6 +167,12 @@ mpegpsmux_finalize (GObject * object)
     gst_object_unref (mux->collect);
     mux->collect = NULL;
   }
+  // vvv wenfeng
+  if (mux->out_adapter) {
+    g_object_unref (mux->out_adapter);
+    mux->out_adapter = NULL;
+  }
+  // ^^^ wenfeng
   if (mux->psmux) {
     psmux_free (mux->psmux);
     mux->psmux = NULL;
@@ -229,7 +235,6 @@ mpegpsmux_create_stream (MpegPsMux * mux, MpegPsPadData * ps_data, GstPad * pad)
   }
 
   s = gst_caps_get_structure (caps, 0);
-  g_return_val_if_fail (s != NULL, FALSE);
 
   if (gst_structure_has_name (s, "video/x-dirac")) {
     GST_DEBUG_OBJECT (pad, "Creating Dirac stream");
@@ -548,9 +553,12 @@ mpegpsmux_collected (GstCollectPads * pads, MpegPsMux * mux)
 
     /* start of new GOP? */
     keyunit = !GST_BUFFER_FLAG_IS_SET (buf, GST_BUFFER_FLAG_DELTA_UNIT);
-
+    // audio is always key 
+	if(best->stream_id == mux->video_stream_id)
+	//printf("keyunit = %d best->stream_id = %d mux->video_stream_id=%d\n" ,keyunit, best->stream_id , mux->video_stream_id);
     if (keyunit && best->stream_id == mux->video_stream_id
         && mux->gop_list != NULL) {
+			
       ret = mpegpsmux_push_gop_list (mux);
       if (ret != GST_FLOW_OK)
         goto done;
@@ -564,7 +572,8 @@ mpegpsmux_collected (GstCollectPads * pads, MpegPsMux * mux)
     /* write the data from libpsmux to stream */
     while (psmux_stream_bytes_in_buffer (best->stream) > 0) {
       GST_LOG_OBJECT (mux, "Before @psmux_write_stream_packet");
-      if (!psmux_write_stream_packet (mux->psmux, best->stream)) {
+      // if (!psmux_write_stream_packet (mux->psmux, best->stream)) {  // wenfeng
+       if (!psmux_write_stream_packet_gb28181 (mux->psmux, best->stream, keyunit,((best->stream_id == mux->video_stream_id)? 1:0))) {
         GST_DEBUG_OBJECT (mux, "Failed to write data packet");
         goto write_fail;
       }
@@ -651,14 +660,78 @@ mpegpsmux_release_pad (GstElement * element, GstPad * pad)
       gst_buffer_unref (pad_data->codec_data);
       pad_data->codec_data = NULL;
     }
+    if (pad_data->stream_id == mux->video_stream_id)
+      mux->video_stream_id = 0;
   }
-  if (pad_data->stream_id == mux->video_stream_id)
-    mux->video_stream_id = 0;
   GST_OBJECT_UNLOCK (pad);
 
   gst_collect_pads_remove_pad (mux->collect, pad);
 }
 
+#define OUTPUT_BUFFER_ALIGN    1316
+static gboolean
+new_packet_cb (guint8 * data, guint len, void *user_data)
+{
+  /* Called when the PsMux has prepared a packet for output. Return FALSE
+   * on error */
+
+  MpegPsMux *mux = (MpegPsMux *) user_data;
+  GstBuffer *buf;
+  GstFlowReturn ret;
+  int av;
+  GstBufferList *buffer_list;
+  
+  GST_LOG_OBJECT (mux, "Outputting a packet of length %d", len);
+
+  data = g_memdup (data, len);
+  buf = gst_buffer_new_wrapped (data, len);
+
+  GST_BUFFER_TIMESTAMP (buf) = mux->last_ts;
+
+  if (mux->aggregate_gops) {
+    if (mux->gop_list == NULL)
+      mux->gop_list = gst_buffer_list_new ();
+
+    gst_buffer_list_add (mux->gop_list, buf);
+    return TRUE;
+  }
+
+ // vvv wenfeng
+  GST_LOG_OBJECT (mux, "collecting packet size %" G_GSIZE_FORMAT,
+      gst_buffer_get_size (buf));
+  gst_adapter_push (mux->out_adapter, buf);
+
+  av = gst_adapter_available (mux->out_adapter);
+  GST_LOG_OBJECT (mux, "av %d", av);
+  
+  buffer_list = gst_buffer_list_new_sized ((av / OUTPUT_BUFFER_ALIGN) + 1);
+
+    while (OUTPUT_BUFFER_ALIGN <= av) {
+    GstBuffer *buf;
+   // GstClockTime pts;
+
+   // pts = gst_adapter_prev_pts (mux->out_adapter, NULL);
+    buf = gst_adapter_take_buffer (mux->out_adapter, OUTPUT_BUFFER_ALIGN);
+
+   // GST_BUFFER_PTS (buf) = pts;
+
+    gst_buffer_list_add (buffer_list, buf);
+    av -= 1316;
+  }
+	
+   return gst_pad_push_list (mux->srcpad, buffer_list);
+	
+
+  ret = gst_pad_push (mux->srcpad, buf);
+
+  if (G_UNLIKELY (ret != GST_FLOW_OK)) {
+    mux->last_flow_ret = ret;
+    return FALSE;
+  }
+
+  return TRUE;
+}
+#if 0
 static gboolean
 new_packet_cb (guint8 * data, guint len, void *user_data)
 {
@@ -693,7 +766,7 @@ new_packet_cb (guint8 * data, guint len, void *user_data)
 
   return TRUE;
 }
-
+#endif
 /* prepare the source pad for output */
 static gboolean
 mpegpsdemux_prepare_srcpad (MpegPsMux * mux)

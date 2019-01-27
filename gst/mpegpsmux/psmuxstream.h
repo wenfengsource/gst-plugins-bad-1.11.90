@@ -111,8 +111,8 @@ struct PsMuxStream{
   guint32 cur_buffer_consumed;
 
   /* PES payload */
-  guint16 cur_pes_payload_size;
-  guint16 pes_bytes_written; /* delete*/
+  guint32 cur_pes_payload_size;  // wenfeng
+  guint32 pes_bytes_written; /* delete*/
 
   /* PTS/DTS to write if the flags in the packet info are set */
   gint64 pts; /* TODO: cur_buffer->pts?*/

@@ -269,6 +269,101 @@ psmux_stream_bytes_in_buffer (PsMuxStream * stream)
  *
  * Returns: number of bytes having been written, 0 if error
  */
+ 
+ guint
+psmux_stream_get_data (PsMuxStream * stream, guint8 * buf, guint len)
+{
+  guint8 pes_hdr_length;
+  guint w;
+
+  guint32 avail;
+  guint8 *cur;
+  
+
+  g_return_val_if_fail (stream != NULL, FALSE);
+  g_return_val_if_fail (buf != NULL, FALSE);
+  g_return_val_if_fail (len >= PSMUX_PES_MAX_HDR_LEN, FALSE);
+
+
+  
+
+
+  if (stream->cur_buffer == NULL) {
+	/* Start next packet */
+	//if (stream->buffers == NULL)
+	  return FALSE;
+	//stream->cur_buffer = (PsMuxStreamBuffer *) (stream->buffers->data);
+	//stream->cur_buffer_consumed = 0;
+  }
+
+  
+  /* Take as much as we can from the current buffer */
+  avail = stream->cur_buffer->map.size - stream->cur_buffer_consumed;
+  cur = stream->cur_buffer->map.data + stream->cur_buffer_consumed;
+
+  
+
+ // stream->cur_pes_payload_size =  
+   //   MIN (psmux_stream_bytes_in_buffer (stream), len - PSMUX_PES_MAX_HDR_LEN);
+
+    stream->cur_pes_payload_size =  
+      MIN (avail, len - PSMUX_PES_MAX_HDR_LEN);
+   
+  /* Note that we cannot make a better estimation of the header length for the
+   * time being; because the header length is dependent on whether we can find a
+   * timestamp in the upcomming buffers, which in turn depends on
+   * cur_pes_payload_size, which is exactly what we want to decide.
+   */
+
+  psmux_stream_find_pts_dts_within (stream, stream->cur_pes_payload_size,
+      &stream->pts, &stream->dts);
+
+  /* clear pts/dts flag */
+  stream->pi.flags &= ~(PSMUX_PACKET_FLAG_PES_WRITE_PTS_DTS |
+      PSMUX_PACKET_FLAG_PES_WRITE_PTS);
+  /* update pts/dts flag */
+  if (stream->pts != -1 && stream->dts != -1)
+    stream->pi.flags |= PSMUX_PACKET_FLAG_PES_WRITE_PTS_DTS;
+  else {
+    if (stream->pts != -1)
+      stream->pi.flags |= PSMUX_PACKET_FLAG_PES_WRITE_PTS;
+  }
+
+  pes_hdr_length = psmux_stream_pes_header_length (stream);
+  //printf("pes_hdr_length =%u\n",pes_hdr_length);
+  /* write pes header */
+  GST_LOG ("Writing PES header of length %u and payload %d",
+      pes_hdr_length, stream->cur_pes_payload_size);
+  psmux_stream_write_pes_header (stream, buf);
+
+  buf += pes_hdr_length;
+   w = stream->cur_pes_payload_size;     /* number of bytes of payload to write */
+
+ // while (w > 0) 
+  	{
+
+
+#if 0
+    if (avail < w) {
+      memcpy (buf, cur, avail);
+      psmux_stream_consume (stream, avail);
+
+      buf += avail;
+      w -= avail;
+    } else
+#endif
+		{
+      memcpy (buf, cur, w);
+      psmux_stream_consume (stream, w);
+
+      w = 0;
+    }
+  }
+
+  return pes_hdr_length + stream->cur_pes_payload_size;
+}
+
+#if 0 
 guint
 psmux_stream_get_data (PsMuxStream * stream, guint8 * buf, guint len)
 {
@@ -289,7 +384,8 @@ psmux_stream_get_data (PsMuxStream * stream, guint8 * buf, guint len)
 
   psmux_stream_find_pts_dts_within (stream, stream->cur_pes_payload_size,
       &stream->pts, &stream->dts);
-
+    printf("stream->pts =%lld stream->dts =%lld is_video_stream=%d is_audio_stream=%d\n" ,stream->pts ,stream->dts,stream->is_video_stream ,stream->is_audio_stream);
+	
   /* clear pts/dts flag */
   stream->pi.flags &= ~(PSMUX_PACKET_FLAG_PES_WRITE_PTS_DTS |
       PSMUX_PACKET_FLAG_PES_WRITE_PTS);
@@ -342,6 +438,7 @@ psmux_stream_get_data (PsMuxStream * stream, guint8 * buf, guint len)
 
   return pes_hdr_length + stream->cur_pes_payload_size;
 }
+#endif
 
 static guint8
 psmux_stream_pes_header_length (PsMuxStream * stream)
