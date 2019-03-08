@@ -151,6 +151,7 @@ mpegpsmux_init (MpegPsMux * mux)
       (GstCollectPadsFunction) GST_DEBUG_FUNCPTR (mpegpsmux_collected), mux);
 
   mux->psmux = psmux_new ();
+  mux->out_adapter = gst_adapter_new (); // wenfeng
   psmux_set_write_func (mux->psmux, new_packet_cb, mux);
 
   mux->first = TRUE;
@@ -253,13 +254,15 @@ mpegpsmux_create_stream (MpegPsMux * mux, MpegPsPadData * ps_data, GstPad * pad)
     const GValue *value;
     GST_DEBUG_OBJECT (pad, "Creating H264 stream");
     /* Codec data contains SPS/PPS which need to go in stream for valid ES */
+
     value = gst_structure_get_value (s, "codec_data");
     if (value) {
       ps_data->codec_data = gst_buffer_ref (gst_value_get_buffer (value));
       GST_DEBUG_OBJECT (pad, "%" G_GSIZE_FORMAT " bytes of codec data",
           gst_buffer_get_size (ps_data->codec_data));
       ps_data->prepare_func = mpegpsmux_prepare_h264;
-    } else {
+    } 
+    else{
       ps_data->codec_data = NULL;
     }
     ps_data->stream = psmux_create_stream (mux->psmux, PSMUX_ST_VIDEO_H264);
@@ -669,6 +672,7 @@ mpegpsmux_release_pad (GstElement * element, GstPad * pad)
 }
 
 #define OUTPUT_BUFFER_ALIGN    1316
+#if 1
 static gboolean
 new_packet_cb (guint8 * data, guint len, void *user_data)
 {
@@ -719,10 +723,10 @@ new_packet_cb (guint8 * data, guint len, void *user_data)
     av -= 1316;
   }
 	
-   return gst_pad_push_list (mux->srcpad, buffer_list);
+   ret = gst_pad_push_list (mux->srcpad, buffer_list);
 	
 
-  ret = gst_pad_push (mux->srcpad, buf);
+  //ret = gst_pad_push (mux->srcpad, buf);
 
   if (G_UNLIKELY (ret != GST_FLOW_OK)) {
     mux->last_flow_ret = ret;
@@ -731,6 +735,7 @@ new_packet_cb (guint8 * data, guint len, void *user_data)
 
   return TRUE;
 }
+#endif 
 #if 0
 static gboolean
 new_packet_cb (guint8 * data, guint len, void *user_data)
