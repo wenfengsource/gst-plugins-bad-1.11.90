@@ -1338,6 +1338,7 @@ mpegtsmux_collected_buffer (GstCollectPads * pads, GstCollectData * data,
   GST_DEBUG_OBJECT (mux, "delta: %d", delta);
 
   stream_data = stream_data_new (buf);
+//  printf("stream_data->map_info.size =%u pts =%lld \n", stream_data->map_info.size ,pts); 
   tsmux_stream_add_data (best->stream, stream_data->map_info.data,
       stream_data->map_info.size, stream_data, pts, dts, !delta);
 

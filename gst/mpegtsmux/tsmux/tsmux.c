@@ -104,8 +104,8 @@
 /* HACK: We use a fixed buffering offset for the PCR at the moment - 
  * this is the amount 'in advance' of the stream that the PCR sits.
  * 1/8 second atm */
-#define TSMUX_PCR_OFFSET (TSMUX_CLOCK_FREQ / 8)
-
+//#define TSMUX_PCR_OFFSET (TSMUX_CLOCK_FREQ / 8)
+#define TSMUX_PCR_OFFSET (TSMUX_CLOCK_FREQ / 30)  // wenfeng 30fps , pcr less pts 1 frame
 /* Times per second to write PCR */
 #define TSMUX_DEFAULT_PCR_FREQ (25)
 
@@ -1099,7 +1099,7 @@ tsmux_write_stream_packet (TsMux * mux, TsMuxStream * stream)
 
   if (!tsmux_write_ts_header (map.data, pi, &payload_len, &payload_offs))
     goto fail;
-
+ // printf("payload_len = %u \n", payload_len);
 
   if (!tsmux_stream_get_data (stream, map.data + payload_offs, payload_len))
     goto fail;

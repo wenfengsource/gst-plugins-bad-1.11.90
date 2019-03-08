@@ -305,7 +305,8 @@ tsmux_stream_consume (TsMuxStream * stream, guint len)
   stream->cur_buffer_consumed += len;
   stream->bytes_avail -= len;
 
-  if (stream->cur_buffer_consumed == 0)
+  //if (stream->cur_buffer_consumed == 0) //wenfeng 
+  if (stream->cur_buffer_consumed == 0 && stream->cur_buffer->size != 0)
     return;
 
   if (GST_CLOCK_STIME_IS_VALID (stream->cur_buffer->pts)) {
@@ -525,7 +526,9 @@ tsmux_stream_get_data (TsMuxStream * stream, guint8 * buf, guint len)
     /* Take as much as we can from the current buffer */
     avail = stream->cur_buffer->size - stream->cur_buffer_consumed;
     cur = stream->cur_buffer->data + stream->cur_buffer_consumed;
+ //printf("avail =%u  len =%u \n", avail , len);
     if (avail < len) {
+     
       memcpy (buf, cur, avail);
       tsmux_stream_consume (stream, avail);
 
