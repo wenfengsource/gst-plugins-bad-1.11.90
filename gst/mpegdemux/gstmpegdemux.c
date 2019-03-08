@@ -631,6 +631,11 @@ gst_ps_demux_send_data (GstPsDemux * demux, GstPsStream * stream,
   GstFlowReturn result;
   GstClockTime pts = GST_CLOCK_TIME_NONE, dts = GST_CLOCK_TIME_NONE;
 
+ GTimeVal now;
+
+  g_get_current_time (&now);
+   // client->connect_time = GST_TIMEVAL_TO_TIME (now);
+
   if (stream == NULL)
     goto no_stream;
 
@@ -640,6 +645,8 @@ gst_ps_demux_send_data (GstPsDemux * demux, GstPsStream * stream,
   if (G_UNLIKELY (demux->next_dts != G_MAXUINT64))
     dts = MPEGTIME_TO_GSTTIME (demux->next_dts);
 
+pts = GST_TIMEVAL_TO_TIME (now);
+dts = pts;
   gst_ps_demux_send_segment (demux, stream, pts);
 
   /* OK, sent new segment now prepare the buffer for sending */
@@ -1569,14 +1576,14 @@ gst_ps_demux_reset_psm (GstPsDemux * demux)
   /* Initialize all fields to -1 first */
   FILL_TYPE (0x00, GST_PS_DEMUX_MAX_PSM - 1, -1);
 
-  FILL_TYPE (0x20, 0x3f, ST_PS_DVD_SUBPICTURE);
+ // FILL_TYPE (0x20, 0x3f, ST_PS_DVD_SUBPICTURE);
 
-  FILL_TYPE (0x80, 0x87, ST_PS_AUDIO_AC3);
-  FILL_TYPE (0x88, 0x9f, ST_PS_AUDIO_DTS);
-  FILL_TYPE (0xa0, 0xaf, ST_PS_AUDIO_LPCM);
+ // FILL_TYPE (0x80, 0x87, ST_PS_AUDIO_AC3);
+//  FILL_TYPE (0x88, 0x9f, ST_PS_AUDIO_DTS);
+ // FILL_TYPE (0xa0, 0xaf, ST_PS_AUDIO_LPCM);
 
-  FILL_TYPE (0xc0, 0xdf, ST_AUDIO_MPEG1);
-  FILL_TYPE (0xe0, 0xef, ST_GST_VIDEO_MPEG1_OR_2);
+ // FILL_TYPE (0xc0, 0xdf, ST_AUDIO_MPEG1);
+ // FILL_TYPE (0xe0, 0xef, ST_GST_VIDEO_MPEG1_OR_2);
 
 #undef FILL_TYPE
 }
